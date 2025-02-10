@@ -48,6 +48,10 @@ public class User {
         this.password = password;
     }
 
+    @ToString.Exclude
+    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE},orphanRemoval = true)
+    private Cart cart;
+
     @Setter
     @Getter
     @ManyToMany(cascade = {
