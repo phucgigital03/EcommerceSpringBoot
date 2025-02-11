@@ -25,12 +25,13 @@ public class Cart {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "cart",cascade = {
+    @OneToMany(mappedBy = "cart", fetch = FetchType.EAGER, cascade = {
             CascadeType.PERSIST,
             CascadeType.MERGE,
+//            CascadeType.REFRESH,
             CascadeType.REMOVE
     },
             orphanRemoval = true
     )
-    List<CartItem> cartItems = new ArrayList<>();
+    private List<CartItem> cartItems = new ArrayList<>();
 }
