@@ -74,7 +74,7 @@ public class CartServiceImpl implements CartService {
 //      convert cart to cartDTO
         CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
         List<CartItem> cartItems = cartItemRepository.findCartItemByCartId(cart.getCartId());
-//      List<CartItem> cartItems = cart.getCartItems();
+//        List<CartItem> cartItems = cart.getCartItems();
         logger.debug("length of cartItems: " + cartItems.size());
         Stream<ProductDTO> productDTOStream =
                 cartItems.stream().map(item -> {
@@ -85,6 +85,47 @@ public class CartServiceImpl implements CartService {
                 });
         cartDTO.setProducts(productDTOStream.toList());
 //      return updated cart
+        return cartDTO;
+    }
+
+    @Override
+    public List<CartDTO> getAllCarts() {
+        List<Cart> carts = cartRepository.findAll();
+        if(carts.size() == 0) {
+            throw new APIException("No carts found");
+        }
+
+        List<CartDTO> cartDTOS = carts.stream().map(cart -> {
+            CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
+
+            List<ProductDTO> productDTOS = cart.getCartItems().stream().map(
+                    cartItem -> {
+                        ProductDTO proDTO =  modelMapper.map(cartItem.getProduct(), ProductDTO.class);
+                        proDTO.setQuantity(cartItem.getQuantity());
+                        return proDTO;
+                    }
+            ).toList();
+
+            cartDTO.setProducts(productDTOS);
+            return cartDTO;
+        }).toList();
+        return cartDTOS;
+    }
+
+    @Override
+    public CartDTO getCart(String email, Long cartId) {
+        Cart cart = cartRepository.findCartByEmailAndCartId(email,cartId);
+        if(cart == null) {
+            throw new ResourceNotFoundException("Cart","cartId",cartId);
+        }
+        CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
+        List<ProductDTO> productDTOS = cart.getCartItems().stream()
+                .map(cartItem -> {
+                    ProductDTO proDTO =  modelMapper.map(cartItem.getProduct(), ProductDTO.class);
+                    proDTO.setQuantity(cartItem.getQuantity());
+                    return proDTO;
+                }).toList();
+        cartDTO.setProducts(productDTOS);
         return cartDTO;
     }
 
