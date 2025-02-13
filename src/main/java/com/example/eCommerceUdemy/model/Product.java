@@ -26,7 +26,7 @@ import java.util.List;
 @Table(name = "products")
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
     private String description;
     private String image;
@@ -44,6 +44,13 @@ public class Product {
     @JoinColumn(name = "seller_id")
     private User seller;
 
-    @OneToMany(mappedBy = "product",cascade = {CascadeType.PERSIST, CascadeType.MERGE},fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product",
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE,
+//                    CascadeType.REMOVE
+            },
+            fetch = FetchType.EAGER
+    )
     private List<CartItem> products = new ArrayList<>();
 }

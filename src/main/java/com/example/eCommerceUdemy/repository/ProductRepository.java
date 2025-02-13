@@ -4,6 +4,7 @@ import com.example.eCommerceUdemy.model.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("select p from Product p where LOWER(p.productName) like LOWER(concat('%', :keyword, '%'))")
     Page<Product> findProductsByLikeProductName(@Param("keyword") String keyword, Pageable pageable);
+
+    @Modifying
+    @Query("delete from Product p where p.productId = ?1")
+    void deleteProductById(Long productId);
 }
