@@ -234,6 +234,7 @@ public class CartServiceImpl implements CartService {
                 - (cartItem.getProductPrice() * cartItem.getQuantity());
 
         cartItem.setProductPrice(product.getSpecialPrice());
+        cartItem.setDiscount(product.getDiscount());
 
         cart.setTotalPrice(cartPrice
                 + (cartItem.getProductPrice() * cartItem.getQuantity()));
