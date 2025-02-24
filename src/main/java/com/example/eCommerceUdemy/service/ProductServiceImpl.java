@@ -40,6 +40,8 @@ public class ProductServiceImpl implements ProductService {
     FileService fileService;
     @Value("${project.image}")
     private String path;
+    @Value("${image.base.url}")
+    private String imageBaseUrl;
     @Autowired
     private CartService cartService;
     @Autowired
@@ -76,6 +78,10 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
+    private String constructImage(String imageName){
+        return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
+    }
+
     @Override
     public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
 //      sort
@@ -91,7 +97,11 @@ public class ProductServiceImpl implements ProductService {
             throw new APIException("No products found");
         }
         List<ProductDTO> productDTOS = products.stream()
-                .map(product -> modelMapper.map(product, ProductDTO.class))
+                .map(product -> {
+                    ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
+                    productDTO.setImage(constructImage(product.getImage()));
+                    return productDTO;
+                })
                 .toList();
 
         ProductResponse productResponse = new ProductResponse();
