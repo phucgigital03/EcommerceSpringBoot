@@ -55,7 +55,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         System.out.println(frontendUrl);
         registry.addMapping("/**")
                 .allowedOrigins(frontendUrl,"http://localhost:5174")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("GET","POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
@@ -99,11 +99,11 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
 //                                .requestMatchers("/api/admin/**").permitAll()
-//                                .requestMatchers("/api/public/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/images/**").permitAll()
                                 .requestMatchers("api/public/**").permitAll()
+                                .requestMatchers("api/addresses/**").permitAll()
                                 .anyRequest().authenticated()
                 );
         http.authenticationProvider(authenticationProvider());
