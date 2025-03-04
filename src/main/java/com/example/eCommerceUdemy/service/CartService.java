@@ -1,6 +1,7 @@
 package com.example.eCommerceUdemy.service;
 
 import com.example.eCommerceUdemy.payload.CartDTO;
+import com.example.eCommerceUdemy.payload.CartItemDTO;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -21,4 +22,7 @@ public interface CartService {
 
     @Transactional
     void updateProductInCarts(Long cartId, Long productId);
+
+    @Transactional
+    String createOrUpdateCartWithItems(List<CartItemDTO> cartItemDTOS);
 }

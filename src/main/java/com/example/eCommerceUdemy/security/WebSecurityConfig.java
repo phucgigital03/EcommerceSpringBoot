@@ -104,6 +104,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/images/**").permitAll()
                                 .requestMatchers("api/public/**").permitAll()
                                 .requestMatchers("api/addresses/**").permitAll()
+                                .requestMatchers("api/user/addresses/**").permitAll()
+                                .requestMatchers("api/cart/**").permitAll()
+                                .requestMatchers("api/carts/**").permitAll()
                                 .anyRequest().authenticated()
                 );
         http.authenticationProvider(authenticationProvider());
