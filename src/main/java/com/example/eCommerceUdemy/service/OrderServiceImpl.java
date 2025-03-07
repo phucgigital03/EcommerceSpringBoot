@@ -39,7 +39,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage) {
+    public OrderDTO placeOrder(
+            String emailId,
+            Long addressId,
+            String paymentMethod,
+            String pgName,
+            String pgPaymentId,
+            String pgStatus,
+            String pgResponseMessage
+    ) {
         Cart cart = cartRepository.findCartByEmail(emailId);
         if (cart == null) {
             throw new ResourceNotFoundException("Cart", "emailId", emailId);
@@ -54,7 +62,13 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus("Order accepted");
         order.setShippingAddress(address);
 
-        Payment payment = new Payment(paymentMethod, pgName, pgPaymentId, pgStatus, pgResponseMessage);
+        Payment payment = new Payment(
+                paymentMethod,
+                pgPaymentId,
+                pgStatus,
+                pgResponseMessage,
+                pgName
+        );
         payment.setOrder(order);
         payment = paymentRepository.save(payment);
 

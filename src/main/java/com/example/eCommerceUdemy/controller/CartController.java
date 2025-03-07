@@ -37,7 +37,7 @@ public class CartController {
             @RequestBody List<CartItemDTO> cartItemDTOS
     ) {
         logger.debug("createOrUpdateCart debug: {}", cartItemDTOS);
-        Cart cart = cartRepository.findCartByEmail("user7gmail@gmail.com");
+        Cart cart = cartRepository.findCartByEmail("u@gmail.com");
         System.out.println(cart);
         return new ResponseEntity<>("test API", HttpStatus.CREATED);
     }
@@ -69,6 +69,9 @@ public class CartController {
     public ResponseEntity<CartDTO> getCartByUser() {
         String email = authUtil.loggedInEmail();
         Cart cart = cartRepository.findCartByEmail(email);
+        if(cart == null) {
+            return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        }
         Long cartId = cart.getCartId();
         CartDTO cartDTO = cartService.getCart(email,cartId);
         return new ResponseEntity<>(cartDTO, HttpStatus.OK);

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "payments")
@@ -27,6 +28,7 @@ public class Payment {
     private String pgResponseMessage;
     private String pgName;
 
+    @ToString.Exclude
     @OneToOne(mappedBy = "payment", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private Order order;
 

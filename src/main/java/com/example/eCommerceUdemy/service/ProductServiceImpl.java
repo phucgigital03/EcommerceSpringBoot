@@ -11,6 +11,7 @@ import com.example.eCommerceUdemy.payload.ProductResponse;
 import com.example.eCommerceUdemy.repository.CartRepository;
 import com.example.eCommerceUdemy.repository.CategoryRepository;
 import com.example.eCommerceUdemy.repository.ProductRepository;
+import com.example.eCommerceUdemy.util.ConstructImageUtil;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +40,12 @@ public class ProductServiceImpl implements ProductService {
     FileService fileService;
     @Value("${project.image}")
     private String path;
-    @Value("${image.base.url}")
-    private String imageBaseUrl;
     @Autowired
     private CartService cartService;
     @Autowired
     private CartRepository cartRepository;
+    @Autowired
+    private ConstructImageUtil constructImageUtil;
 
 
     @Override
@@ -75,10 +76,6 @@ public class ProductServiceImpl implements ProductService {
         }else{
             throw new APIException("Product already exists");
         }
-    }
-
-    private String constructImage(String imageName){
-        return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
     }
 
     @Override
@@ -114,7 +111,7 @@ public class ProductServiceImpl implements ProductService {
         List<ProductDTO> productDTOS = products.stream()
                 .map(product -> {
                     ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
-                    productDTO.setImage(constructImage(product.getImage()));
+                    productDTO.setImage(constructImageUtil.constructImage(product.getImage()));
                     return productDTO;
                 })
                 .toList();

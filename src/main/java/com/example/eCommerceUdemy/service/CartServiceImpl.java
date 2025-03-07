@@ -12,6 +12,7 @@ import com.example.eCommerceUdemy.repository.CartItemRepository;
 import com.example.eCommerceUdemy.repository.CartRepository;
 import com.example.eCommerceUdemy.repository.ProductRepository;
 import com.example.eCommerceUdemy.util.AuthUtil;
+import com.example.eCommerceUdemy.util.ConstructImageUtil;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -36,6 +37,8 @@ public class CartServiceImpl implements CartService {
     private AuthUtil authUtil;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private ConstructImageUtil constructImageUtil;
 
     @Transactional
     @Override
@@ -104,6 +107,7 @@ public class CartServiceImpl implements CartService {
                     cartItem -> {
                         ProductDTO proDTO = modelMapper.map(cartItem.getProduct(), ProductDTO.class);
                         proDTO.setQuantity(cartItem.getQuantity());
+                        proDTO.setImage(constructImageUtil.constructImage(proDTO.getImage()));
                         return proDTO;
                     }
             ).toList();
@@ -125,6 +129,7 @@ public class CartServiceImpl implements CartService {
                 .map(cartItem -> {
                     ProductDTO proDTO = modelMapper.map(cartItem.getProduct(), ProductDTO.class);
                     proDTO.setQuantity(cartItem.getQuantity());
+                    proDTO.setImage(constructImageUtil.constructImage(proDTO.getImage()));
                     return proDTO;
                 }).toList();
         cartDTO.setProducts(productDTOS);

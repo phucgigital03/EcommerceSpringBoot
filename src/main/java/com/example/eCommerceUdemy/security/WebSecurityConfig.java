@@ -41,6 +41,9 @@ import java.util.Set;
 @EnableWebSecurity
 //@EnableMethodSecurity
 public class WebSecurityConfig implements WebMvcConfigurer {
+    @Value("${stripe.secret.key}")
+    private String keyStripe;
+
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
@@ -107,6 +110,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("api/user/addresses/**").permitAll()
                                 .requestMatchers("api/cart/**").permitAll()
                                 .requestMatchers("api/carts/**").permitAll()
+                                .requestMatchers("api/order/**").permitAll()
                                 .anyRequest().authenticated()
                 );
         http.authenticationProvider(authenticationProvider());
@@ -130,6 +134,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             System.out.println("Welcome to ECommerce Udemy");
+//            System.out.println("keyStripe: " + keyStripe);
             // Retrieve or create roles
             Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
                     .orElseGet(() -> {
