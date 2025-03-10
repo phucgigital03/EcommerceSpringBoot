@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -72,9 +74,17 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.save(newCartItem);
 //      update when save cart item
         product.setQuantity(product.getQuantity());
-        cart.setTotalPrice(cart.getTotalPrice() + (product.getSpecialPrice() * quantity));
+
+        BigDecimal totalPrice = BigDecimal.valueOf(cart.getTotalPrice());
+        BigDecimal specialPrice = BigDecimal.valueOf(product.getSpecialPrice());
+        BigDecimal qty = BigDecimal.valueOf(quantity);
+        // Perform the calculation with precision
+        totalPrice = totalPrice.add(specialPrice.multiply(qty)).setScale(2, RoundingMode.HALF_UP);
+
+        cart.setTotalPrice(totalPrice.doubleValue()); // Convert back to double if needed
+//      cart.setTotalPrice(cart.getTotalPrice() + (product.getSpecialPrice() * quantity));
 //      cart.getCartItems().add(newCartItem);*****
-        cartRepository.save(cart);
+        cart = cartRepository.save(cart);
 
 //      convert cart to cartDTO
         CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
@@ -213,7 +223,14 @@ public class CartServiceImpl implements CartService {
         if (cartItem == null) {
             throw new ResourceNotFoundException("Product", "productId", productId);
         }
-        cart.setTotalPrice(cart.getTotalPrice() - (cartItem.getProductPrice() * cartItem.getQuantity()));
+
+        BigDecimal totalPrice = BigDecimal.valueOf(cart.getTotalPrice());
+        BigDecimal productPrice = BigDecimal.valueOf(cartItem.getProductPrice());
+        BigDecimal quantity = BigDecimal.valueOf(cartItem.getQuantity());
+
+//        Subtract with precision
+        totalPrice = totalPrice.subtract(productPrice.multiply(quantity)).setScale(2, RoundingMode.HALF_UP);
+        cart.setTotalPrice(totalPrice.doubleValue());
 
 //        Product product = cartItem.getProduct();
 //        product.setQuantity(product.getQuantity() + cartItem.getQuantity());

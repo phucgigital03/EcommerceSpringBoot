@@ -53,6 +53,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Value("${frontend.url}")
     String frontendUrl;
 
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         System.out.println(frontendUrl);
@@ -111,6 +112,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("api/cart/**").permitAll()
                                 .requestMatchers("api/carts/**").permitAll()
                                 .requestMatchers("api/order/**").permitAll()
+                                .requestMatchers("api/payment/vn-pay/**").permitAll()
                                 .anyRequest().authenticated()
                 );
         http.authenticationProvider(authenticationProvider());
