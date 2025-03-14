@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 //import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -39,7 +40,7 @@ import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig implements WebMvcConfigurer {
     @Value("${stripe.secret.key}")
     private String keyStripe;
@@ -106,6 +107,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/images/**").permitAll()
+                                .requestMatchers(HttpMethod.POST,"api/public/categories").authenticated()
                                 .requestMatchers("api/public/**").permitAll()
                                 .requestMatchers("api/addresses/**").permitAll()
                                 .requestMatchers("api/user/addresses/**").permitAll()
@@ -121,6 +123,11 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
         return http.build();
     }
+
+//    Chức năng
+//    Cấu hình này thiết lập chính sách quản lý phiên (session)
+//    của Spring Security thành STATELESS, nghĩa là Spring Security
+//    sẽ không tạo hoặc duy trì phiên đăng nhập cho người dùng.
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {

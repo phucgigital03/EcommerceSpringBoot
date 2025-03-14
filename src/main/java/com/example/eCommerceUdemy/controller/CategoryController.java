@@ -23,7 +23,7 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+//    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/public/categories")
     public ResponseEntity<CategoryResponse> getCategories(
             @RequestParam(name = "pageNumber",defaultValue = AppConsants.PAGE_NUMBER, required = false) Integer pageNumber,
@@ -54,7 +54,4 @@ public class CategoryController {
         CategoryDTO updateCategoryDTO = categoryService.update(categoryDTO, id);
         return new ResponseEntity<>(updateCategoryDTO, HttpStatus.OK);
     }
-
-
-
 }
