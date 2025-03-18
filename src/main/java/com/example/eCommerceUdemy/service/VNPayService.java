@@ -45,11 +45,14 @@ public class VNPayService implements PaymentService{
     @Value("${payment.vnpay.return-url}")
     private String returnUrlFormat;
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     @Override
     public InitPaymentResponse init(InitPaymentRequest request,String txnRefOrderId) {
 //        var requestId = request.getRequestId();
         System.out.println("tmnCode: " + tmnCode);
-        System.out.println("returnUrlFormat: " + returnUrlFormat);
+        System.out.println("returnUrlFormat: " + frontendUrl + returnUrlFormat);
         var ipAddress = request.getIpAddress();
         var orderInfo = buildPaymentDetail(txnRefOrderId);
         var amount = request.getAmount() * DEFAULT_MULTIPLIER;
@@ -58,6 +61,9 @@ public class VNPayService implements PaymentService{
         var createdDate = DateUtil.formatVnTime(vnCalendar);
         vnCalendar.add(Calendar.MINUTE, 15);
         var expiredDate = DateUtil.formatVnTime(vnCalendar);
+
+        log.debug("createdDate: " + createdDate + " expiredDate: " + expiredDate);
+        log.debug("ipAddress: " + ipAddress);
 
         Map<String, String> params = new HashMap<>();
 
@@ -92,7 +98,8 @@ public class VNPayService implements PaymentService{
     }
 
     private String buildReturnUrl(String txnRef) {
-        return String.format(returnUrlFormat, txnRef);
+        String returnUrl = frontendUrl + returnUrlFormat;
+        return String.format(returnUrl, txnRef);
     }
 
     private String buildInitPaymentUrl(Map<String, String> params) {

@@ -69,15 +69,23 @@ public class AuthController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.debug("generate jwt token");
 
+        String jwtToken = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
+//        UserInfoResponse response =
+//                new UserInfoResponse(
+//                        userDetails.getId(),
+//                        userDetails.getUsername(),
+//                        roles
+//                );
         UserInfoResponse response =
                 new UserInfoResponse(
                         userDetails.getId(),
+                        jwtToken,
                         userDetails.getUsername(),
                         roles
                 );

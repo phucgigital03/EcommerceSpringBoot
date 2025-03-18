@@ -34,6 +34,10 @@ public class JwtUtils {
     @Value("${spring.ecom.app.jwtCookieName}")
     private String jwtCookie;
 
+    private boolean httpCookie;
+
+    private boolean secureCookie;
+
     public String getJwtFromCookie(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, jwtCookie);
         if (cookie != null) {
@@ -44,19 +48,25 @@ public class JwtUtils {
     }
 
     public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
-        String jwt = generateTokenFromUsername(userPrincipal.getUsername());
+//        String jwt = generateTokenFromUsername(userPrincipal.getUsername());
+        String jwt = "jwtTokenCookie";
         ResponseCookie cookie = ResponseCookie.from(jwtCookie,jwt)
                 .path("/api")
                 .maxAge(24 * 60 * 60)
-                .httpOnly(false)
-                .secure(false)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
                 .build();
         return cookie;
     }
 
     public ResponseCookie getCleanJwtCookie() {
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie,null)
-                .path("/api")
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie,"")
+                .path("/api")  // Use same path as login
+                .httpOnly(true)  // Ensure security
+                .secure(true)  // Required for HTTPS on Render
+                .sameSite("None")  // Required for cross-origin authentication
+                .maxAge(0)  // Expire the cookie immediately
                 .build();
         return cookie;
     }

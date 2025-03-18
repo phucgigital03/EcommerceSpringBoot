@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -62,6 +63,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .allowedOrigins(frontendUrl,"http://localhost:5174")
                 .allowedMethods("GET","POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders(HttpHeaders.SET_COOKIE)
                 .allowCredentials(true);
     }
 
@@ -97,7 +99,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/auth/**").permitAll()
@@ -117,6 +118,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("api/payment/vn-pay/**").permitAll()
                                 .anyRequest().authenticated()
                 );
+        http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         http.headers(headers ->
@@ -132,6 +134,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web -> web.ignoring().requestMatchers("/v2/api-docs",
+                "/favicon.ico",
                 "/configuration/ui",
                 "/swagger-resources/**",
                 "/configuration/security",
