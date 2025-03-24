@@ -18,6 +18,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 //import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -42,7 +44,7 @@ import java.util.Set;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class WebSecurityConfig implements WebMvcConfigurer {
+public class WebSecurityConfig {
     @Value("${stripe.secret.key}")
     private String keyStripe;
 
@@ -52,26 +54,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
-    @Value("${frontend.url}")
-    String frontendUrl;
-
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        System.out.println(frontendUrl);
-        registry.addMapping("/**")
-                .allowedOrigins(frontendUrl,"http://localhost:5174")
-                .allowedMethods("GET","POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .exposedHeaders(HttpHeaders.SET_COOKIE)
-                .allowCredentials(true);
-    }
-
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:images/");
-    }
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -99,6 +81,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/auth/**").permitAll()
@@ -108,14 +91,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/images/**").permitAll()
-                                .requestMatchers(HttpMethod.POST,"api/public/categories").authenticated()
-                                .requestMatchers("api/public/**").permitAll()
-                                .requestMatchers("api/addresses/**").permitAll()
-                                .requestMatchers("api/user/addresses/**").permitAll()
-                                .requestMatchers("api/cart/**").permitAll()
-                                .requestMatchers("api/carts/**").permitAll()
-                                .requestMatchers("api/order/**").permitAll()
-                                .requestMatchers("api/payment/vn-pay/**").permitAll()
+//                                .requestMatchers(HttpMethod.POST,"/api/admin/categories").authenticated()
+                                .requestMatchers("/api/public/**").permitAll()
                                 .anyRequest().authenticated()
                 );
         http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));

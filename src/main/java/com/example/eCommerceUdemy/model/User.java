@@ -42,6 +42,17 @@ public class User {
     @Column(name = "password")
     private String password;
 
+    @Size(max = 500)
+    @Column(name = "access_token")
+    private String accessToken; // Lưu access token trực tiếp
+
+    @Size(max = 500)
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
+    @Column(name = "is_token_revoked")
+    private Boolean isTokenRevoked;
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;

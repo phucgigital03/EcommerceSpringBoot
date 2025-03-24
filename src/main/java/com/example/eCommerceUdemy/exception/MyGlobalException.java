@@ -5,6 +5,7 @@ import com.example.eCommerceUdemy.payload.APIResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,8 +39,14 @@ public class MyGlobalException {
     @ExceptionHandler
     public ResponseEntity<APIResponse> handleAPIException(APIException e) {
         String message = e.getMessage();
+        HttpStatus status = e.getStatus() == null ? HttpStatus.NOT_FOUND : e.getStatus();
         APIResponse apiResponse = new APIResponse(message,false);
-        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(apiResponse, status);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
+        return new ResponseEntity<>("Access Denied: You do not have permission to access this resource", HttpStatus.FORBIDDEN);
     }
 
 }
