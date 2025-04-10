@@ -84,17 +84,21 @@ public class WebSecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
+                                auth.requestMatchers("/api/auth/**").permitAll()
+                                        .requestMatchers("/v3/api-docs/**").permitAll()
+                                        .requestMatchers("/h2-console/**").permitAll()
 //                                .requestMatchers("/api/admin/**").permitAll()
-                                .requestMatchers("/swagger-ui/**").permitAll()
-                                .requestMatchers("/api/test/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()
+                                        .requestMatchers("/swagger-ui/**").permitAll()
+                                        .requestMatchers("/api/test/**").permitAll()
+                                        .requestMatchers("/images/**").permitAll()
 //                                .requestMatchers(HttpMethod.POST,"/api/admin/categories").authenticated()
-                                .requestMatchers("/api/public/**").permitAll()
-                                .anyRequest().authenticated()
+                                        .requestMatchers("/api/public/**").permitAll()
+                                        .requestMatchers("/oauth2/**").permitAll()
+                                        .anyRequest().authenticated()
                 );
+        http.oauth2Login(oauth2 -> {
+
+        });
         http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
