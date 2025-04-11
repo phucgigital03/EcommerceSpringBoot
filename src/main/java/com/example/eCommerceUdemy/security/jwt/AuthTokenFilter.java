@@ -118,12 +118,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private void setUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
         if(message.equals("Need to refresh token")){
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_GONE);
         }else{
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         APIResponse apiResponse = new APIResponse(message, false);
         new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
     }

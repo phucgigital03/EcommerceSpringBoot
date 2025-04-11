@@ -27,7 +27,7 @@ public class User {
     private Long userId;
 
     @NotBlank
-    @Size(max = 20)
+    @Size(max = 200)
     @Column(name = "username")
     private String username;
 
@@ -53,6 +53,10 @@ public class User {
     @Column(name = "is_token_revoked")
     private Boolean isTokenRevoked;
 
+    private String twoFactorSecret;
+    private boolean isTwoFactorEnabled = false;
+    private String signUpMethod;
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
@@ -66,7 +70,7 @@ public class User {
     @Setter
     @Getter
     @ManyToMany(cascade = {
-            CascadeType.PERSIST,
+//            CascadeType.PERSIST,
             CascadeType.MERGE
     },fetch = FetchType.EAGER)
     @JoinTable(

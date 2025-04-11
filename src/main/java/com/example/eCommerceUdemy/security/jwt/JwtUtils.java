@@ -94,12 +94,13 @@ public class JwtUtils {
         return null;
     }
 
-    public String generateTokenFromUsername(String username) {
+    public String generateTokenFromUsername(UserDetailsImpl userDetailsImpl) {
         return Jwts.builder()
-                .subject(username)
+                .subject(userDetailsImpl.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .claim("nonce", UUID.randomUUID().toString())
+                .claim("userId", userDetailsImpl.getId())
                 .signWith(key())
                 .compact();
     }
@@ -109,6 +110,7 @@ public class JwtUtils {
                 .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtRefreshExpirationMs))
+                .claim("nonce", UUID.randomUUID().toString())
                 .signWith(key())
                 .compact();
     }

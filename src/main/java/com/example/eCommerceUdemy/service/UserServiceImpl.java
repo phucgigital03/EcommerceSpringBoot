@@ -11,9 +11,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,10 +23,12 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -74,5 +78,29 @@ public class UserServiceImpl implements UserService {
                 .map(user -> modelMapper.map(user, UsersResponse.class))
                 .collect(Collectors.toList());
         return usersResponses;
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    @Transactional
+    public void registerUser(User newUser) {
+        if (newUser.getPassword() != null){
+            newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        }
+        userRepository.save(newUser);
+    }
+
+    @Override
+    public boolean saveAccessToken(String jwtToken, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+        user.setAccessToken(jwtToken);
+        user.setIsTokenRevoked(false); // valid token
+        userRepository.save(user);
+        return true;
     }
 }

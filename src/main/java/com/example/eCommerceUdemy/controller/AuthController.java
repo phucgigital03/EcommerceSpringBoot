@@ -2,9 +2,11 @@ package com.example.eCommerceUdemy.controller;
 
 import com.example.eCommerceUdemy.exception.APIException;
 import com.example.eCommerceUdemy.exception.ResourceNotFoundException;
+import com.example.eCommerceUdemy.exception.TokenExpireException;
 import com.example.eCommerceUdemy.model.AppRole;
 import com.example.eCommerceUdemy.model.Role;
 import com.example.eCommerceUdemy.model.User;
+import com.example.eCommerceUdemy.payload.UserTokenDTO;
 import com.example.eCommerceUdemy.repository.RoleRepository;
 import com.example.eCommerceUdemy.repository.UserRepository;
 import com.example.eCommerceUdemy.security.jwt.JwtUtils;
@@ -63,29 +65,29 @@ public class AuthController {
     @PostMapping("/signin")
     public ResponseEntity<?> signIn(@RequestBody LogInRequest logInRequest) {
         Authentication authentication;
-        try{
+        try {
             logger.debug("check username and password at controller");
             authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(
                             logInRequest.getUsername(),
                             logInRequest.getPassword()
                     ));
-        }catch (AuthenticationException e){
+        } catch (AuthenticationException e) {
             logger.debug("AuthenticationException at controller " + e.getMessage());
-            Map<String,Object> map = new HashMap<>();
-            map.put("message","Bad credentials");
-            map.put("status",false);
+            Map<String, Object> map = new HashMap<>();
+            map.put("message", "Bad credentials");
+            map.put("status", false);
             return new ResponseEntity<Object>(map, HttpStatus.NOT_FOUND);
         }
         SecurityContextHolder.getContext()
                 .setAuthentication(authentication);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String jwtToken = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
+        String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
         ResponseCookie jwtRefreshCookie = jwtUtils.generateJwtRefreshCookie(userDetails);
 
 //      save accessToken and refreshToken to DB
-        userServiceImpl.saveToken(jwtToken,jwtUtils.extractJwtFromResponseCookie(jwtRefreshCookie.toString()),userDetails.getUsername());
+        userServiceImpl.saveToken(jwtToken, jwtUtils.extractJwtFromResponseCookie(jwtRefreshCookie.toString()), userDetails.getUsername());
 
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -105,11 +107,11 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        if (userRepository.existsByUsername((signUpRequest.getUsername()))){
+        if (userRepository.existsByUsername((signUpRequest.getUsername()))) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
         }
 
-        if (userRepository.existsByEmail((signUpRequest.getEmail()))){
+        if (userRepository.existsByEmail((signUpRequest.getEmail()))) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
         }
 
@@ -152,9 +154,9 @@ public class AuthController {
 
     @GetMapping("/username")
     public String getUsername(Authentication authentication) {
-        if(authentication != null){
+        if (authentication != null) {
             return authentication.getName();
-        }else {
+        } else {
             return "NULL";
         }
     }
@@ -180,17 +182,17 @@ public class AuthController {
     public ResponseEntity<?> signOut(HttpServletRequest request) {
 //      extract refresh token from cookie
         String refreshToken = jwtUtils.getJwtFromCookie(request);
-        if(refreshToken == null){
+        if (refreshToken == null) {
             return ResponseEntity.badRequest().body(new MessageResponse("Refresh token is empty!"));
         }
         logger.debug("refresh token: " + refreshToken);
-        try{
+        try {
 //          extract username from refresh token
             String username = jwtUtils.getUsernameFromToken(refreshToken);
 
 //          Find user from DB
             User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("username","User", username));
+                    .orElseThrow(() -> new ResourceNotFoundException("username", "User", username));
 
 //          revoke all token
             userServiceImpl.revokeToken(user.getUsername());
@@ -199,7 +201,7 @@ public class AuthController {
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                     .body(new MessageResponse("Signed out successfully!"));
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("Invalid refresh token : ", e.getMessage());
             return ResponseEntity.badRequest().body(new MessageResponse("Invalid refresh token! Need to login"));
         }
@@ -210,40 +212,96 @@ public class AuthController {
         System.out.println("Refresh token");
 //      extract refresh token from cookie
         String refreshToken = jwtUtils.getJwtFromCookie(request);
-        if(refreshToken == null){
+        if (refreshToken == null) {
             return new ResponseEntity<>(new MessageResponse("Refresh token is empty!"), HttpStatus.BAD_REQUEST);
         }
-        try{
+        try {
 //          extract username from token
             String username = jwtUtils.getUsernameFromToken(refreshToken);
 //          check if user exists in DB
             User user = userRepository.findByUsername(username)
-                    .orElseThrow(()-> new UsernameNotFoundException("User is not found!"));
+                    .orElseThrow(() -> new UsernameNotFoundException("User is not found!"));
 //          check refresh token is valid
             String refreshTokenDB = user.getRefreshToken();
             logger.debug("Refresh token DB: " + refreshTokenDB);
-            if(jwtUtils.validateToken(refreshTokenDB)){
+            if (jwtUtils.validateToken(refreshTokenDB)) {
                 //      generate accessToken and old refreshToken
-                String accessToken = jwtUtils.generateTokenFromUsername(user.getUsername());
+                String accessToken = jwtUtils.generateTokenFromUsername(UserDetailsImpl.build(user));
                 logger.debug("Refresh token DB to generate new accessToken: " + accessToken);
                 //      revoke or save accessToken to DB
-                userServiceImpl.saveToken(accessToken,refreshTokenDB,user.getUsername());
-                return new ResponseEntity<>(new RefreshTokenResponse(accessToken,refreshTokenDB), HttpStatus.OK);
-            }else{
+                userServiceImpl.saveToken(accessToken, refreshTokenDB, user.getUsername());
+                return new ResponseEntity<>(new RefreshTokenResponse(accessToken, refreshTokenDB), HttpStatus.OK);
+            } else {
                 return new ResponseEntity<>(new MessageResponse("Refresh token is invalid!"), HttpStatus.BAD_REQUEST);
             }
-        }catch (MalformedJwtException e) {
+        } catch (MalformedJwtException e) {
             logger.error("Invalid JWT refresh token: {}", e.getMessage());
-            throw new APIException(HttpStatus.BAD_REQUEST,"Invalid JWT refresh token");
-        }catch (ExpiredJwtException e){
+            throw new APIException(HttpStatus.BAD_REQUEST, "Invalid JWT refresh token");
+        } catch (ExpiredJwtException e) {
             logger.error("JWT refresh token is expired: {}", e.getMessage());
             throw new APIException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }catch (UnsupportedJwtException e){
+        } catch (UnsupportedJwtException e) {
             logger.error("JWT refresh token is unsupported: {}", e.getMessage());
             throw new APIException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             logger.error("JWT refresh token claims string is empty: {}", e.getMessage());
             throw new APIException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @PostMapping("/oauth2/set-cookie")
+    public ResponseEntity<?> setCookie(@RequestBody UserTokenDTO userTokenDTO) {
+        try {
+            System.out.println("userTokenDTO: " + userTokenDTO);
+//      Check user exists in DB
+            User user = userRepository.findById(userTokenDTO.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", userTokenDTO.getUserId()));
+//      Check token equals with user's token from DB
+            if(user.getAccessToken() == null){
+                throw new APIException(HttpStatus.BAD_REQUEST, "Access token is empty!");
+            }
+
+            if (!user.getAccessToken().equals(userTokenDTO.getToken())) {
+                throw new APIException(HttpStatus.UNAUTHORIZED, "Access token don't match");
+            }
+//      Check valid token
+            if (!jwtUtils.validateToken(user.getAccessToken())) {
+                throw new APIException(HttpStatus.UNAUTHORIZED, "Invalid access token");
+            }
+//      Check refreshToken exists in DB if refreshToken equals null,
+//      allowing to setCookie
+            if (user.getRefreshToken() != null) {
+                throw new APIException(HttpStatus.UNAUTHORIZED, "Refresh token already exists, not setting again!");
+            }
+
+//      Generate JWT RefreshToken
+            ResponseCookie jwtRefreshCookie = jwtUtils.generateJwtRefreshCookie(UserDetailsImpl.build(user));
+
+//      save accessToken and refreshToken to DB
+            userServiceImpl.saveToken(
+                    user.getAccessToken(),
+                    jwtUtils.extractJwtFromResponseCookie(jwtRefreshCookie.toString()),
+                    user.getUsername()
+            );
+
+            List<String> roles = user.getRoles().stream()
+                    .map(role -> role.getRoleName().name())
+                    .toList();
+
+            UserInfoResponse response =
+                    new UserInfoResponse(
+                            user.getUserId(),
+                            user.getAccessToken(),
+                            user.getUsername(),
+                            roles
+                    );
+
+//      Add the cookie to the response
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
+                    .body(response);
+        } catch (TokenExpireException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Invalid access token or expired access token!"));
         }
     }
 
