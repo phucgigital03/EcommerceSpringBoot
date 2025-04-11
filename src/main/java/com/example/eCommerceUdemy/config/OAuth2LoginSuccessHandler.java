@@ -54,8 +54,22 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         if ("github".equals(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId()) || "google".equals(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId())) {
             DefaultOAuth2User principal = (DefaultOAuth2User) authentication.getPrincipal();
             Map<String, Object> attributes = principal.getAttributes();
-            String email = attributes.getOrDefault("email", "").toString();
-            String name = attributes.getOrDefault("name", "").toString();
+            String email = Optional.ofNullable(attributes.get("email"))
+                    .map(Object::toString)
+                    .orElse("");
+            String name = Optional.ofNullable(attributes.get("name"))
+                    .map(Object::toString)
+                    .orElse("");
+
+            // Validate email and name before proceeding
+            if (email.isEmpty() || name.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Email or name is missing from OAuth provider\"}");
+                response.getWriter().flush();
+                return;
+            }
+
             if ("github".equals(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId())) {
                 username = attributes.getOrDefault("login", "").toString();
                 idAttributeKey = "id";
@@ -135,7 +149,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         // Create UserDetailsImpl instance
         UserDetailsImpl userDetails = new UserDetailsImpl(
                 user.getUserId(),
-                username,
+                user.getUsername(),
                 email,
                 null,
                 false,
