@@ -2,6 +2,7 @@ package com.example.eCommerceUdemy.service;
 
 import com.example.eCommerceUdemy.model.User;
 import com.example.eCommerceUdemy.payload.UsersResponse;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -19,4 +20,12 @@ public interface UserService {
     void registerUser(User newUser);
 
     boolean saveAccessToken(String jwtToken, String username);
+
+    GoogleAuthenticatorKey generate2FASecret(Long userId);
+
+    boolean validate2FACode(Long userId, int code);
+
+    void enable2FA(Long userId);
+
+    void disable2FA(Long userId);
 }
