@@ -101,6 +101,7 @@ public class JwtUtils {
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .claim("nonce", UUID.randomUUID().toString())
                 .claim("userId", userDetailsImpl.getId())
+                .claim("is2faEnabled", userDetailsImpl.is2faEnabled())
                 .signWith(key())
                 .compact();
     }
