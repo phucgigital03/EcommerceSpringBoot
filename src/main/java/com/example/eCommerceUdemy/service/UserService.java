@@ -5,6 +5,7 @@ import com.example.eCommerceUdemy.payload.UsersResponse;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import jakarta.transaction.Transactional;
 
+import java.awt.print.PrinterJob;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +29,8 @@ public interface UserService {
     void enable2FA(Long userId);
 
     void disable2FA(Long userId);
+
+    User getUserById(Long userId);
+
+    User findByUsername(String username);
 }

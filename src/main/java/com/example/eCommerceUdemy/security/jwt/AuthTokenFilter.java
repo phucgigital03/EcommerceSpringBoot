@@ -46,7 +46,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
         logger.debug("AuthTokenFilter called for URI: {}", requestURI);
         if(isPublicEndpoint(requestURI)){
-            logger.debug("Skipping authentication for public endpoint: {}", requestURI);
+            logger.error("Skipping authentication for public endpoint: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
@@ -109,6 +109,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicEndpoint(String uri) {
+        if(
+                uri.startsWith("/api/auth/enable-2fa") ||
+                uri.startsWith("/api/auth/disable-2fa") ||
+                uri.startsWith("/api/auth/verify-2fa") ||
+                uri.startsWith("/api/auth/user/2fa-status")
+        ){
+            return false;
+        }
         return uri.startsWith("/api/auth/") ||  // Authentication routes
                 uri.startsWith("/v3/api-docs/") || // API Docs
                 uri.startsWith("/swagger-ui/") || // Swagger UI

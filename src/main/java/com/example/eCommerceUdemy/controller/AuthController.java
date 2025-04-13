@@ -16,8 +16,11 @@ import com.example.eCommerceUdemy.security.response.MessageResponse;
 import com.example.eCommerceUdemy.security.response.RefreshTokenResponse;
 import com.example.eCommerceUdemy.security.response.UserInfoResponse;
 import com.example.eCommerceUdemy.security.service.UserDetailsImpl;
+import com.example.eCommerceUdemy.service.TotpService;
+import com.example.eCommerceUdemy.service.UserService;
 import com.example.eCommerceUdemy.service.UserServiceImpl;
 import com.example.eCommerceUdemy.util.AuthUtil;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -61,6 +64,10 @@ public class AuthController {
     private UserServiceImpl userServiceImpl;
     @Autowired
     private AuthUtil authUtil;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private TotpService totpService;
 
     @PostMapping("/signin")
     public ResponseEntity<?> signIn(@RequestBody LogInRequest logInRequest) {
@@ -302,6 +309,79 @@ public class AuthController {
                     .body(response);
         } catch (TokenExpireException e) {
             return ResponseEntity.badRequest().body(new MessageResponse("Invalid access token or expired access token!"));
+        }
+    }
+
+//  For 2FA authentication
+    @PostMapping("/enable-2fa")
+    public ResponseEntity<String> enable2FA() {
+        try{
+            Long userId = authUtil.loggedInUserId();
+            GoogleAuthenticatorKey secret = userService.generate2FASecret(userId);
+            String qrCodeUrl = totpService.getQRCodeUrl(secret,
+                    userService.getUserById(userId).getUsername());
+            return ResponseEntity.ok(qrCodeUrl);
+        }catch (Exception e){
+            System.out.println("Enable2FA Error: " + e.getMessage());
+            return ResponseEntity.status(400).body("Bad Request");
+        }
+    }
+
+    @PostMapping("/disable-2fa")
+    public ResponseEntity<String> disable2FA() {
+        Long userId = authUtil.loggedInUserId();
+        userService.disable2FA(userId);
+        return ResponseEntity.ok("2FA disabled");
+    }
+
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<String> verify2FA(@RequestParam int code) {
+        Long userId = authUtil.loggedInUserId();
+        boolean isValid = userService.validate2FACode(userId, code);
+        if (isValid) {
+            userService.enable2FA(userId);
+            return ResponseEntity.ok("2FA Verified");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                    .body("Invalid 2FA Code");
+        }
+    }
+
+
+    @PostMapping("/user/2fa-status")
+    public ResponseEntity<?> get2FAStatus() {
+        User user = authUtil.loggedInUser();
+        if (user != null) {
+            return ResponseEntity.ok().body(Map.of("is2faEnabled", user.isTwoFactorEnabled()));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found");
+        }
+    }
+
+
+    @PostMapping("/public/verify-2fa-login")
+    public ResponseEntity<?> verify2FALogin(@RequestParam int code,
+                                                 @RequestParam String jwtToken) {
+        String username = jwtUtils.getUsernameFromToken(jwtToken);
+        User user = userService.findByUsername(username);
+        boolean isValid = userService.validate2FACode(user.getUserId(), code);
+        if (isValid) {
+            List<String> roles = user.getRoles().stream()
+                    .map(role -> role.getRoleName().name())
+                    .toList();
+            UserInfoResponse response =
+                    new UserInfoResponse(
+                            user.getUserId(),
+                            user.getAccessToken(),
+                            user.getUsername(),
+                            roles
+                    );
+            return ResponseEntity.ok().body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                    .body("Invalid 2FA Code");
         }
     }
 
