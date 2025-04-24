@@ -19,5 +19,5 @@ public interface OrderService {
 
     OrderDTO getOrderById(Long orderId);
 
-    List<OrderDTO> getOrderByUser(String emailId);
+    List<OrderDTO> getOrderByUser(String email);
 }

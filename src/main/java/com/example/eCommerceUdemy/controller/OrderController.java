@@ -77,8 +77,8 @@ public class OrderController {
 
     @GetMapping("/order/user/orders")
     public ResponseEntity<List<OrderDTO>> getUserOrder() {
-        String emailId = authUtil.loggedInEmail();
-        List<OrderDTO> orderDTOs = orderService.getOrderByUser(emailId);
+        String email = authUtil.loggedInEmail();
+        List<OrderDTO> orderDTOs = orderService.getOrderByUser(email);
         return new ResponseEntity<>(orderDTOs,HttpStatus.OK);
     }
 }

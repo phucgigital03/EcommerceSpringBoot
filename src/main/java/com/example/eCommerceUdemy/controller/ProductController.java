@@ -29,6 +29,16 @@ public class ProductController {
         return new ResponseEntity<>(savedproductDTO, HttpStatus.CREATED);
     }
 
+    @PostMapping("/admin/categories/{categoryId}/productWithImage")
+    public ResponseEntity<ProductDTO> createProductWithImage(
+            @RequestPart(name = "productDTO") ProductDTO productDTO,
+            @RequestPart(name = "imageFile") MultipartFile imageFile,
+            @PathVariable Long categoryId
+    ) {
+        ProductDTO savedproductDTO = productService.addProductWithImage(categoryId, productDTO, imageFile);
+        return new ResponseEntity<>(savedproductDTO, HttpStatus.CREATED);
+    }
+
     @GetMapping("/public/products")
     public ResponseEntity<ProductResponse> getAllProducts(
             @RequestParam(name = "keyword", required = false) String keyword,

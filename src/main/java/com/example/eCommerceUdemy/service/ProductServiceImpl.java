@@ -21,11 +21,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -73,6 +80,67 @@ public class ProductServiceImpl implements ProductService {
             product.setSpecialPrice(specialPrice);
             Product savedProduct = productRepository.save(product);
             return modelMapper.map(savedProduct, ProductDTO.class);
+        }else{
+            throw new APIException("Product already exists");
+        }
+    }
+
+    @Override
+    @Transactional
+    public ProductDTO addProductWithImage(Long categoryId, ProductDTO productDTO, MultipartFile imageFile) {
+        // check category exist
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
+
+        // check product exist
+        boolean isProductNotPresent = true;
+        List<Product> products = category.getProducts();
+        for(Product product : products){
+//            System.out.println(product);
+            if(product.getProductName().equals(productDTO.getProductName())){
+                isProductNotPresent = false;
+                break;
+            }
+        }
+
+        if(isProductNotPresent){
+            String fileName = "default.png";
+            String filePath = null;
+            try {
+                //save fileImage and get fileName
+                Map<String, String> fileNameAndFilePath = fileService.saveFile(path, imageFile);
+                filePath = fileNameAndFilePath.get("filePath");
+                fileName = fileNameAndFilePath.get("fileName");
+
+                //convert DTO->Entity
+                Product product = modelMapper.map(productDTO, Product.class);
+                product.setProductId(null);
+                product.setCategory(category);
+                double specialPrice = product.getPrice() - (product.getPrice() * product.getDiscount() * 0.01);
+                product.setSpecialPrice(specialPrice);
+
+                product.setImage(fileName);
+                Product savedProduct = productRepository.save(product);
+                return modelMapper.map(savedProduct, ProductDTO.class);
+
+            }catch (IllegalArgumentException e){
+                System.out.println("IllegalArgumentException: " + e.getMessage());
+                // Case 1: One file upload (I am at case 1)
+                // Case 2: Multiple files uploads, you can
+                // see addProductWithImages and addProductWithImagesHandleErrors
+                throw new APIException(HttpStatus.BAD_REQUEST,"Failed to save image: " + e.getMessage());
+            } catch (Exception e){
+                // If DB save fails, delete the uploaded image
+                if (filePath != null && Files.exists(Paths.get(filePath))) {
+                    try {
+                        Files.delete(Paths.get(filePath));
+                        System.out.println("Rolled back image file: " + filePath);
+                    } catch (IOException ex) {
+                        System.err.println("Failed to delete uploaded image: " + ex.getMessage());
+                    }
+                }
+                throw new APIException(HttpStatus.BAD_REQUEST,"Failed to save product or image");
+            }
         }else{
             throw new APIException("Product already exists");
         }
@@ -243,4 +311,114 @@ public class ProductServiceImpl implements ProductService {
 //      return DTO after mapping product to DTO
         return modelMapper.map(updatedProduct, ProductDTO.class);
     }
+
+
+    // handle with multiple images that saved
+    public ProductDTO addProductWithImages(Long categoryId, ProductDTO productDTO, List<MultipartFile> imageFiles) {
+        List<String> savedFilePaths = new ArrayList<>();
+        List<String> savedFileNames = new ArrayList<>();
+
+        try {
+            // Upload all images
+            for (MultipartFile image : imageFiles) {
+                Map<String, String> fileResult = fileService.saveFile(path, image);
+                savedFilePaths.add(fileResult.get("filePath"));
+                savedFileNames.add(fileResult.get("fileName"));
+            }
+
+            // Save product
+            Product product = modelMapper.map(productDTO, Product.class);
+            product.setProductId(null);
+            product.setCategory(categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId)));
+
+            product.setImage(String.join(",", savedFileNames));
+            double specialPrice = product.getPrice() - (product.getPrice() * product.getDiscount() * 0.01);
+            product.setSpecialPrice(specialPrice);
+
+            Product savedProduct = productRepository.save(product);
+
+            return modelMapper.map(savedProduct, ProductDTO.class);
+
+        } catch (Exception e) {
+            // Rollback any saved images
+            for (String filePath : savedFilePaths) {
+                try {
+                    Files.deleteIfExists(Paths.get(filePath));
+                    System.out.println("Rolled back image: " + filePath);
+                } catch (IOException ex) {
+                    System.err.println("Failed to delete file: " + filePath + " | " + ex.getMessage());
+                }
+            }
+            throw new APIException("Failed to save product or image(s): " + e.getMessage());
+        }
+    }
+
+
+    // handle with multiple images that saved
+    // handle multiple errors
+    public ProductDTO addProductWithImagesHandleErrors(Long categoryId, ProductDTO productDTO, List<MultipartFile> imageFiles) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
+
+        boolean isProductNotPresent = category.getProducts().stream()
+                .noneMatch(product -> product.getProductName().equals(productDTO.getProductName()));
+
+        if (!isProductNotPresent) {
+            throw new APIException("Product already exists");
+        }
+
+        List<String> savedFilePaths = new ArrayList<>();
+        List<String> savedFileNames = new ArrayList<>();
+        List<String> validationErrors = new ArrayList<>();
+
+        for (MultipartFile imageFile : imageFiles) {
+            try {
+                // Validate manually
+                if (imageFile.getOriginalFilename() == null || imageFile.getOriginalFilename().isBlank()) {
+                    validationErrors.add("Invalid filename for one of the images.");
+                    continue;
+                }
+
+                if (imageFile.getSize() > (2 * 1024 * 1024)) { // e.g. 2MB limit
+                    validationErrors.add("File '" + imageFile.getOriginalFilename() + "' exceeds size limit.");
+                    continue;
+                }
+
+                Map<String, String> result = fileService.saveFile(path, imageFile);
+                savedFilePaths.add(result.get("filePath"));
+                savedFileNames.add(result.get("fileName"));
+
+            } catch (Exception e) {
+                validationErrors.add("Error processing file '" + imageFile.getOriginalFilename() + "': " + e.getMessage());
+            }
+        }
+
+        if (!validationErrors.isEmpty()) {
+            // Rollback any saved files
+            for (String filePath : savedFilePaths) {
+                try {
+                    Files.deleteIfExists(Paths.get(filePath));
+                } catch (IOException ex) {
+                    System.err.println("Rollback failed: " + ex.getMessage());
+                }
+            }
+            throw new APIException(HttpStatus.BAD_REQUEST, String.join(" | ", validationErrors));
+        }
+
+        // Save product if all files are valid
+        Product product = modelMapper.map(productDTO, Product.class);
+        product.setProductId(null);
+        product.setCategory(category);
+        product.setSpecialPrice(product.getPrice() - (product.getPrice() * product.getDiscount() * 0.01));
+        product.setImage(savedFileNames.get(0)); // Main image
+        Product savedProduct = productRepository.save(product);
+
+        ProductDTO responseDTO = modelMapper.map(savedProduct, ProductDTO.class);
+        responseDTO.setImage(savedFileNames.get(0));
+        return responseDTO;
+    }
+
 }
+
+

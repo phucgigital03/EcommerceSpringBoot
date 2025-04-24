@@ -49,13 +49,16 @@ public class OrderServiceImpl implements OrderService {
             String pgStatus,
             String pgResponseMessage
     ) {
+        //1.check cart exist
         Cart cart = cartRepository.findCartByEmail(emailId);
         if (cart == null) {
             throw new ResourceNotFoundException("Cart", "emailId", emailId);
         }
+        //2.check address exist
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", addressId));
 
+        // 3.create order object
         Order order = new Order();
         order.setEmail(emailId);
         order.setOrderDate(LocalDate.now());
@@ -63,6 +66,7 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus("Order accepted");
         order.setShippingAddress(address);
 
+        // create payment method before because order have FK (payment_id)
         Payment payment = new Payment(
                 paymentMethod,
                 pgPaymentId,
@@ -74,8 +78,10 @@ public class OrderServiceImpl implements OrderService {
         payment = paymentRepository.save(payment);
 
         order.setPayment(payment);
+        //saved Order
         Order savedOrder = orderRepository.save(order);
 
+        //4.check cartItems to save orderItems
         List<CartItem> cartItems = cart.getCartItems();
         if(cartItems.isEmpty()) {
             throw new APIException("cartItems is empty");
@@ -91,9 +97,10 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setOrder(savedOrder);
             orderItems.add(orderItem);
         }
-
+        // 5.saved OrderItems
         orderItems = orderItemRepository.saveAll(orderItems);
 
+        // 6.clean up cartItems and update product quantity
         cart.getCartItems().forEach(orderItem -> {
             int quantity = orderItem.getQuantity();
 
@@ -107,6 +114,7 @@ public class OrderServiceImpl implements OrderService {
 
         });
 
+        // 7. convert Order to OrderDTO
         OrderDTO orderDTO = modelMapper.map(savedOrder, OrderDTO.class);
         orderItems.forEach(orderItem -> {
             OrderItemDTO orderItemDTO = modelMapper.map(orderItem, OrderItemDTO.class);
@@ -228,8 +236,8 @@ public class OrderServiceImpl implements OrderService {
         });
 
         Payment payment = orderVNPayNotPaid.getPayment();
-        payment.setPgStatus("Accepted");
-        payment.setPgResponseMessage("Payment accepted");
+        payment.setPgStatus("succeeded");
+        payment.setPgResponseMessage("Payment successful");
         paymentRepository.save(payment);
 
         orderRepository.save(orderVNPayNotPaid);
@@ -257,7 +265,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getOrderByUser(String emailId) {
+    public List<OrderDTO> getOrderByUser(String email) {
+        System.out.println("Email: " + email);
+
+        List<Order> orders =  orderRepository.findAllByEmail(email);
+
+        for (Order order : orders) {
+            System.out.println("Order: " + order);
+        }
+
         return List.of();
     }
 }
