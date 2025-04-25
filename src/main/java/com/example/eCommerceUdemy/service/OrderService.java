@@ -1,5 +1,6 @@
 package com.example.eCommerceUdemy.service;
 
+import com.example.eCommerceUdemy.payload.HistoryOrderResponse;
 import com.example.eCommerceUdemy.payload.InitPaymentRequest;
 import com.example.eCommerceUdemy.payload.OrderDTO;
 import com.example.eCommerceUdemy.payload.OrderVNPayResDTO;
@@ -19,5 +20,5 @@ public interface OrderService {
 
     OrderDTO getOrderById(Long orderId);
 
-    List<OrderDTO> getOrderByUser(String email);
+    List<HistoryOrderResponse> getOrderByUser(String email);
 }

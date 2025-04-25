@@ -44,6 +44,10 @@ public class Address {
     @Size(min = 5,message = "Street name must be at least 6 characters")
     private String pincode;
 
+    @NotBlank
+    @Size(min = 10,message = "Receive phone must be at least 10 characters")
+    private String receivePhone;
+
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id")

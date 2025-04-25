@@ -5,6 +5,7 @@ import com.example.eCommerceUdemy.exception.ResourceNotFoundException;
 import com.example.eCommerceUdemy.model.*;
 import com.example.eCommerceUdemy.payload.*;
 import com.example.eCommerceUdemy.repository.*;
+import com.example.eCommerceUdemy.util.ConstructImageUtil;
 import com.example.eCommerceUdemy.util.CurrencyConverterUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,8 @@ public class OrderServiceImpl implements OrderService {
     ProductRepository productRepository;
     @Autowired
     VNPayService vnPayService;
+    @Autowired
+    ConstructImageUtil constructImageUtil;
 
     @Override
     @Transactional
@@ -265,15 +268,38 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getOrderByUser(String email) {
+    public List<HistoryOrderResponse> getOrderByUser(String email) {
         System.out.println("Email: " + email);
-
+        List<HistoryOrderResponse> historyOrderResponses = new ArrayList<>();
         List<Order> orders =  orderRepository.findAllByEmail(email);
 
+        //convert order to historyOrderResponse
         for (Order order : orders) {
-            System.out.println("Order: " + order);
-        }
+            HistoryOrderResponse historyOrderResponse = modelMapper.map(order, HistoryOrderResponse.class);
+            List<HistoryOrderItem> historyOrderItems = new ArrayList<>();
+//            System.out.println("order.getOrderItems(): " + order.getOrderItems());
 
-        return List.of();
+            //set historyOrderItem base on orderItem,product
+            // and then add to historyOrderItems
+            order.getOrderItems().forEach(orderItem -> {
+                HistoryOrderItem historyOrderItem = new HistoryOrderItem();
+
+                historyOrderItem.setOrderItemId(orderItem.getOrderItemId());
+                historyOrderItem.setPrice(orderItem.getProduct().getPrice());
+                historyOrderItem.setQuantity(orderItem.getQuantity());
+                historyOrderItem.setOrderedProductPrice(orderItem.getOrderedProductPrice());
+                historyOrderItem.setImage(constructImageUtil.constructImage(orderItem.getProduct().getImage()));
+                historyOrderItem.setDiscount(orderItem.getDiscount());
+                historyOrderItem.setProductName(orderItem.getProduct().getProductName());
+
+                historyOrderItems.add(historyOrderItem);
+            });
+
+            historyOrderResponse.setOrderItems(historyOrderItems);
+
+            //add historyOrderResponse to List
+            historyOrderResponses.add(historyOrderResponse);
+        }
+        return historyOrderResponses;
     }
 }
