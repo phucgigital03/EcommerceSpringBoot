@@ -17,4 +17,6 @@ public class AddressDTO {
     private String state;
     private String country;
     private String pincode;
+    private String receivePhone;
+    private String username;
 }

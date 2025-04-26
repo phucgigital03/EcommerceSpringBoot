@@ -246,6 +246,8 @@ public class ProductServiceImpl implements ProductService {
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
         Product productFromDB = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
+        Category categoryDB = categoryRepository.findById(productDTO.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", productDTO.getCategoryId()));
 //      convert DTO->Entity
         Product product = modelMapper.map(productDTO, Product.class);
 
@@ -256,8 +258,7 @@ public class ProductServiceImpl implements ProductService {
         productFromDB.setPrice(product.getPrice());
         double specialPrice = product.getPrice() - (product.getPrice() * product.getDiscount() * 0.01);
         productFromDB.setSpecialPrice(specialPrice);
-//        productFromDB.setCategory(product.getCategory());
-//        productFromDB.setSpecialPrice(product.getSpecialPrice());
+        productFromDB.setCategory(categoryDB);
 //        productFromDB.setImage(product.getImage());
 
         Product updatedProduct = productRepository.save(productFromDB);

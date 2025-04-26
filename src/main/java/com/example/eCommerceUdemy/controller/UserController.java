@@ -10,6 +10,7 @@ import com.example.eCommerceUdemy.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -46,5 +47,11 @@ public class UserController {
     public ResponseEntity<?> getAllUsers() {
         List<UsersResponse> users = userService.findAllUsers();
         return ResponseEntity.ok().body(users);
+    }
+
+    @PostMapping("")
+    public ResponseEntity<?> updateUserWithoutPassWord() {
+
+        return ResponseEntity.ok().body(null);
     }
 }

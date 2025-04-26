@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,9 +43,13 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public List<AddressDTO> getAddresses() {
         List<Address> addressList = addressRepository.findAll();
-        List<AddressDTO> addressDTOList = addressList.stream().map(address ->
-                modelMapper.map(address, AddressDTO.class))
-                .collect(Collectors.toList());
+        List<AddressDTO> addressDTOList = new ArrayList<>();
+
+        addressList.forEach(address -> {
+            AddressDTO addressDTO = modelMapper.map(address, AddressDTO.class);
+            addressDTO.setUsername(address.getUser().getUsername());
+            addressDTOList.add(addressDTO);
+        });
         return addressDTOList;
     }
 
