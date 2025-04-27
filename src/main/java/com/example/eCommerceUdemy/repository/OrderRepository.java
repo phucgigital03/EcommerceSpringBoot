@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByEmail(String email);
+    boolean existsByShippingAddress_AddressId(Long addressId);
 }

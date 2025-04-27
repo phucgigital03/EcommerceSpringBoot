@@ -6,6 +6,7 @@ import com.example.eCommerceUdemy.model.Category;
 import com.example.eCommerceUdemy.payload.CategoryDTO;
 import com.example.eCommerceUdemy.payload.CategoryResponse;
 import com.example.eCommerceUdemy.repository.CategoryRepository;
+import com.example.eCommerceUdemy.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +23,17 @@ import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
+    private final ProductRepository productRepository;
     private CategoryRepository categoryRepository;
     private ModelMapper modelMapper;
 
     @Autowired
     public CategoryServiceImpl(CategoryRepository categoryRepository,
-        ModelMapper modelMapper
-    ) {
+        ModelMapper modelMapper,
+                               ProductRepository productRepository) {
         this.categoryRepository = categoryRepository;
         this.modelMapper = modelMapper;
+        this.productRepository = productRepository;
     }
 
 
@@ -82,6 +85,13 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDTO deleteById(Long id) {
         Category existingCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "categoryId", id));
+
+        // check category linked to product
+        boolean isUsedInProduct = productRepository.existsProductByCategory_CategoryId(id);
+        if (isUsedInProduct) {
+            throw new APIException(HttpStatus.NOT_ACCEPTABLE,"Category is used in product");
+        }
+
         categoryRepository.delete(existingCategory);
         return modelMapper.map(existingCategory, CategoryDTO.class);
     }

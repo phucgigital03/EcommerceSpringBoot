@@ -22,4 +22,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Modifying
     @Query("delete from Product p where p.productId = ?1")
     void deleteProductById(Long productId);
+
+    boolean existsProductByCategory_CategoryId(Long categoryId);
 }

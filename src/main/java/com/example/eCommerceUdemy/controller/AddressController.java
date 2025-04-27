@@ -3,6 +3,7 @@ package com.example.eCommerceUdemy.controller;
 import com.example.eCommerceUdemy.model.User;
 import com.example.eCommerceUdemy.payload.AddressDTO;
 import com.example.eCommerceUdemy.service.AddressService;
+import com.example.eCommerceUdemy.service.UserService;
 import com.example.eCommerceUdemy.util.AuthUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,20 @@ public class AddressController {
     private AddressService addressService;
     @Autowired
     private AuthUtil authUtil;
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/addresses")
     public ResponseEntity<AddressDTO> createAddress(@Valid @RequestBody AddressDTO addressDTO) {
         User user = authUtil.loggedInUser();
+        AddressDTO savedAddressDTO = addressService.createAddress(addressDTO,user);
+        return new ResponseEntity<>(savedAddressDTO, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/admin/addresses")
+    public ResponseEntity<AddressDTO> createAddressForAdmin(@Valid @RequestBody AddressDTO addressDTO) {
+        User user = userService.findByUsername(addressDTO.getUsername());
+        System.out.println("user: " + user);
         AddressDTO savedAddressDTO = addressService.createAddress(addressDTO,user);
         return new ResponseEntity<>(savedAddressDTO, HttpStatus.CREATED);
     }
