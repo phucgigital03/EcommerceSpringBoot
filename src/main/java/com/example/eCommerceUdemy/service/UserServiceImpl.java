@@ -247,7 +247,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public String deletedUser(Long userId) {
         System.out.println("deleting user" + userId);
-        // can use soft delete
-        return "";
+        User deletedUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("userId","user","userId"));
+
+        // Use soft delete
+        deletedUser.setDeleted(true);
+        userRepository.save(deletedUser);
+        return "Deleted user successfully with " + userId;
     }
 }

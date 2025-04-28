@@ -16,5 +16,6 @@ public class UsersResponse {
     private Long userId;
     private String username;
     private String email;
+    private Boolean deleted;
     private Set<Role> roles;
 }

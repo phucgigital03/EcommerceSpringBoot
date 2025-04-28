@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,6 +53,9 @@ public class User {
 
     @Column(name = "is_token_revoked")
     private Boolean isTokenRevoked;
+
+    @Column(name = "deleted")
+    private boolean deleted = false;
 
     private String twoFactorSecret;
     private boolean isTwoFactorEnabled = false;

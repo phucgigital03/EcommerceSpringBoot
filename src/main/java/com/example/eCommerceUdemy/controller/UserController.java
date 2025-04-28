@@ -63,6 +63,6 @@ public class UserController {
             @PathVariable Long userId
     ) {
         String deletedUser = userService.deletedUser(userId);
-        return ResponseEntity.ok().body(null);
+        return ResponseEntity.ok().body(deletedUser);
     }
 }
