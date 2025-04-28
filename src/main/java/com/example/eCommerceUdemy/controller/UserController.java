@@ -9,10 +9,7 @@ import com.example.eCommerceUdemy.security.response.MessageResponse;
 import com.example.eCommerceUdemy.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,8 +46,14 @@ public class UserController {
         return ResponseEntity.ok().body(users);
     }
 
-    @PostMapping("")
-    public ResponseEntity<?> updateUserWithoutPassWord() {
+    @PutMapping("")
+    public ResponseEntity<?> updateUserWithoutPassWordUser() {
+
+        return ResponseEntity.ok().body(null);
+    }
+
+    @DeleteMapping("")
+    public ResponseEntity<?> deleteUser() {
 
         return ResponseEntity.ok().body(null);
     }
