@@ -2,8 +2,10 @@ package com.example.eCommerceUdemy.service;
 
 import com.example.eCommerceUdemy.model.User;
 import com.example.eCommerceUdemy.payload.UsersResponse;
+import com.example.eCommerceUdemy.security.request.SignupRequest;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 import java.awt.print.PrinterJob;
 import java.util.List;
@@ -33,4 +35,10 @@ public interface UserService {
     User getUserById(Long userId);
 
     User findByUsername(String username);
+
+    @Transactional
+    String updatedUser(Long userId, @Valid SignupRequest signUpRequest);
+
+    @Transactional
+    String deletedUser(Long userId);
 }

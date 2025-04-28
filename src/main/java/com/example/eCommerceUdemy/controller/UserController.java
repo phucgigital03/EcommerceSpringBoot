@@ -5,8 +5,11 @@ import com.example.eCommerceUdemy.model.Role;
 import com.example.eCommerceUdemy.model.User;
 import com.example.eCommerceUdemy.payload.UsersResponse;
 import com.example.eCommerceUdemy.repository.RoleRepository;
+import com.example.eCommerceUdemy.security.request.SignupRequest;
 import com.example.eCommerceUdemy.security.response.MessageResponse;
 import com.example.eCommerceUdemy.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -46,15 +49,20 @@ public class UserController {
         return ResponseEntity.ok().body(users);
     }
 
-    @PutMapping("")
-    public ResponseEntity<?> updateUserWithoutPassWordUser() {
-
-        return ResponseEntity.ok().body(null);
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> updateUserWithoutPassWordUser(
+            @PathVariable Long userId,
+            @Valid @RequestBody SignupRequest signUpRequest
+    ) {
+        String updatedUser = userService.updatedUser(userId,signUpRequest);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
-    @DeleteMapping("")
-    public ResponseEntity<?> deleteUser() {
-
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(
+            @PathVariable Long userId
+    ) {
+        String deletedUser = userService.deletedUser(userId);
         return ResponseEntity.ok().body(null);
     }
 }

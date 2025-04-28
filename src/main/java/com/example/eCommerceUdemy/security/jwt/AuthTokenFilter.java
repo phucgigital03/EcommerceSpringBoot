@@ -113,7 +113,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 uri.startsWith("/api/auth/enable-2fa") ||
                 uri.startsWith("/api/auth/disable-2fa") ||
                 uri.startsWith("/api/auth/verify-2fa") ||
-                uri.startsWith("/api/auth/user/2fa-status")
+                uri.startsWith("/api/auth/user/2fa-status") ||
+                uri.startsWith("/api/auth/user")
         ){
             return false;
         }
