@@ -11,6 +11,11 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -274,6 +279,47 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders =  orderRepository.findAllByEmail(email);
 
         //convert order to historyOrderResponse
+        getHistoryOrderResponses(orders, historyOrderResponses);
+        return historyOrderResponses;
+    }
+
+    @Override
+    public HistoryOrderPageResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        System.out.println("pageNumber: " + pageNumber);
+        System.out.println("pageSize: " + pageSize);
+        System.out.println("sortBy: " + sortBy);
+        System.out.println("sortOrder: " + sortOrder);
+
+        //      sortBy and sortOrder
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+
+        //      Specification is part Spring Data JPA
+        Specification<Order> spec = Specification.where(null);
+        Page<Order> orderPage = orderRepository.findAll(spec,pageable);
+        //      Get Orders
+        List<Order> orders = orderPage.getContent();
+        if(orders.isEmpty()){
+            throw new APIException("No orders found");
+        }
+
+        List<HistoryOrderResponse> historyOrderResponses = new ArrayList<>();
+        //convert order to historyOrderResponse
+        getHistoryOrderResponses(orders, historyOrderResponses);
+
+        HistoryOrderPageResponse historyOrderPageResponse = new HistoryOrderPageResponse();
+        historyOrderPageResponse.setContent(historyOrderResponses);
+        historyOrderPageResponse.setPageNumber(orderPage.getNumber());
+        historyOrderPageResponse.setPageSize(orderPage.getSize());
+        historyOrderPageResponse.setTotalPages(orderPage.getTotalPages());
+        historyOrderPageResponse.setTotalElements(orderPage.getNumberOfElements());
+        historyOrderPageResponse.setLastPage(orderPage.isLast());
+        return historyOrderPageResponse;
+    }
+
+    private void getHistoryOrderResponses(List<Order> orders, List<HistoryOrderResponse> historyOrderResponses) {
         for (Order order : orders) {
             HistoryOrderResponse historyOrderResponse = modelMapper.map(order, HistoryOrderResponse.class);
             List<HistoryOrderItem> historyOrderItems = new ArrayList<>();
@@ -300,6 +346,6 @@ public class OrderServiceImpl implements OrderService {
             //add historyOrderResponse to List
             historyOrderResponses.add(historyOrderResponse);
         }
-        return historyOrderResponses;
     }
+
 }

@@ -1,5 +1,6 @@
 package com.example.eCommerceUdemy.controller;
 
+import com.example.eCommerceUdemy.config.AppConsants;
 import com.example.eCommerceUdemy.payload.*;
 import com.example.eCommerceUdemy.service.OrderService;
 import com.example.eCommerceUdemy.service.StripeService;
@@ -80,5 +81,18 @@ public class OrderController {
         String email = authUtil.loggedInEmail();
         List<HistoryOrderResponse> orderDTOs = orderService.getOrderByUser(email);
         return new ResponseEntity<>(orderDTOs,HttpStatus.OK);
+    }
+
+
+    @GetMapping("/order/admin/orders")
+    public ResponseEntity<HistoryOrderPageResponse> getAllOrders(
+            @RequestParam(name = "pageNumber",defaultValue = AppConsants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize",defaultValue = AppConsants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "sortBy",defaultValue = AppConsants.SORT_ORDERID_BY, required = false) String sortBy,
+            @RequestParam(name = "sortOrder",defaultValue = AppConsants.SORT_ORDER, required = false) String sortOrder
+    ) {
+//        String email = authUtil.loggedInEmail();
+        HistoryOrderPageResponse historyOrderPageResponse = orderService.getAllOrders(pageNumber,pageSize,sortBy,sortOrder);
+        return new ResponseEntity<>(historyOrderPageResponse,HttpStatus.OK);
     }
 }

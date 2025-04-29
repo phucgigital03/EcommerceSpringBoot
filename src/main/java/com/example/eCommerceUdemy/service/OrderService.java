@@ -1,9 +1,6 @@
 package com.example.eCommerceUdemy.service;
 
-import com.example.eCommerceUdemy.payload.HistoryOrderResponse;
-import com.example.eCommerceUdemy.payload.InitPaymentRequest;
-import com.example.eCommerceUdemy.payload.OrderDTO;
-import com.example.eCommerceUdemy.payload.OrderVNPayResDTO;
+import com.example.eCommerceUdemy.payload.*;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -21,4 +18,6 @@ public interface OrderService {
     OrderDTO getOrderById(Long orderId);
 
     List<HistoryOrderResponse> getOrderByUser(String email);
+
+    HistoryOrderPageResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 }
