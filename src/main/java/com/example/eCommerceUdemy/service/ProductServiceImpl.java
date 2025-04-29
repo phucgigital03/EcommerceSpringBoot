@@ -147,6 +147,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public String softDeleteProduct(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
+
+        product.setDeleted(true);
+        productRepository.save(product);
+        return "Deleted product successfully with id: " + productId;
+    }
+
+    @Override
     public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category) {
 //      sort
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")

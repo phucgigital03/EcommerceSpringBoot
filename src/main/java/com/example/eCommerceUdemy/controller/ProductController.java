@@ -75,6 +75,12 @@ public class ProductController {
         return new ResponseEntity<>(productDTO, HttpStatus.OK);
     }
 
+    @DeleteMapping("/admin/softProduct/{productId}")
+    public ResponseEntity<?> softDeleteProduct(@PathVariable Long productId){
+       String status = productService.softDeleteProduct(productId);
+        return new ResponseEntity<>(status, HttpStatus.OK);
+    }
+
     @GetMapping("/public/products/keyword/{keyword}")
     public ResponseEntity<ProductResponse> getProductsByKeyword(
             @PathVariable String keyword,

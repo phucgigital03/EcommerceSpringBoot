@@ -37,6 +37,9 @@ public class Product {
     private double specialPrice;
     private int quantity;
 
+    @Column(name = "deleted")
+    private boolean deleted = false;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
