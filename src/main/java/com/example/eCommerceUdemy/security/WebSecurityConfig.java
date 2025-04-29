@@ -103,6 +103,7 @@ public class WebSecurityConfig {
                                         .requestMatchers("/images/**").permitAll()
                                         .requestMatchers("/api/public/**").permitAll()
                                         .requestMatchers("/oauth2/**").permitAll()
+                                        .requestMatchers("/api/payment/vn-pay/**").permitAll()
                                         .anyRequest().authenticated()
                 );
         http.oauth2Login(oauth2 -> {

@@ -122,7 +122,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 uri.startsWith("/v3/api-docs/") || // API Docs
                 uri.startsWith("/swagger-ui/") || // Swagger UI
                 uri.startsWith("/images/") || // Public images
-                uri.startsWith("/api/public/"); // Public API
+                uri.startsWith("/api/public/") || // Public API
+                uri.startsWith("/api/payment/vn-pay/"); // Public Payment VNPAY
     }
 
     private void setUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {

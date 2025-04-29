@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #e6d7e6;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #8d4b8d;
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .order-id {
+            font-weight: bold;
+            color: #8d4b8d;
+        }
+        .customer-info {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .totals-table td:first-child {
+            text-align: right;
+            font-weight: bold;
+        }
+        .totals-table td:last-child {
+            text-align: right;
+        }
+        .total-row td {
+            font-weight: bold;
+            color: #8d4b8d;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Order Confirmation!</h1>
+    </div>
+
+    <div class="content">
+        <div class="customer-info">
+            <p>Hey, <span th:text="${order.address.getUsername()}">Customer Name</span></p>
+            <p>Thanks for shopping with us</p>
+            <p>Your order ID is <span class="order-id" th:text="${order.orderId}">#424g1caed3</span>.</p>
+            <p>Your receive phone is <span class="order-id" th:text="${order.address.getReceivePhone()}">0399158632</span>.</p>
+        </div>
+
+        <div class="order-summary">
+            <h2>Order Summary: <span class="order-id" th:text="${order.orderId}">#424g1caed3</span></h2>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Sub Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${order.getOrderItems()}">
+                    <td th:text="${item.productName}">Shoe Tote</td>
+                    <td th:text="${item.quantity}">3</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(item.quantity * item.orderedProductPrice, 1, 2)}">$30.00</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <table class="totals-table">
+                <tr>
+                    <td>Sub Total:</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(order.totalAmount, 1, 2)}">$40.00</td>
+                </tr>
+                <tr>
+                    <td>Shipping Fee:</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(0, 1, 2)}">$6.99</td>
+                </tr>
+                <tr>
+                    <td>Tax Fee:</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(0, 1, 2)}">$0.40</td>
+                </tr>
+                <tr>
+                    <td>Service Fee:</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(0, 1, 2)}">$4.00</td>
+                </tr>
+                <tr class="total-row">
+                    <td>Total:</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(order.totalAmount, 1, 2)}">$51.39</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>If you have any questions about your order, please contact our customer service team.</p>
+            <p>© 2025 Your Company. All rights reserved.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
