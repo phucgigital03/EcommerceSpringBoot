@@ -175,6 +175,7 @@ public class VNPayService implements PaymentService{
         try{
             var orderId = Long.parseLong(params.get("vnp_TxnRef"));
             orderService.updateOrderVNPay(orderId);
+            // Send Order Confirm Here
             response = new VNPayIpnResponse("00", "Successful");
         } catch (Exception e){
             response = new VNPayIpnResponse("99", "Unknown error");

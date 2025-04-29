@@ -28,6 +28,7 @@
         .content {
             padding: 20px;
         }
+        .receivePhone-id,
         .order-id {
             font-weight: bold;
             color: #8d4b8d;
@@ -78,7 +79,7 @@
             <p>Hey, <span th:text="${order.address.getUsername()}">Customer Name</span></p>
             <p>Thanks for shopping with us</p>
             <p>Your order ID is <span class="order-id" th:text="${order.orderId}">#424g1caed3</span>.</p>
-            <p>Your receive phone is <span class="order-id" th:text="${order.address.getReceivePhone()}">0399158632</span>.</p>
+            <p>Your receive phone is <span class="receivePhone-id" th:text="${order.address.getReceivePhone()}">0399158632</span>.</p>
         </div>
 
         <div class="order-summary">
