@@ -109,7 +109,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                         newUser.setEmail(email);
                         newUser.setUsername(username);
                         newUser.setSignUpMethod(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
-                        newUser.setPassword("1111");
+                        newUser.setPassword("123456"); // 1111 or 123456
                         System.out.println("newUser : " + newUser);
                         userService.registerUser(newUser);
                         List<SimpleGrantedAuthority> authorities;

@@ -13,7 +13,7 @@ public interface OrderService {
     OrderVNPayResDTO placeOrderVNPay(String emailId, String paymentMethod, InitPaymentRequest initPaymentRequestDTO);
 
     @Transactional
-    void updateOrderVNPay(long orderId);
+    HistoryOrderResponse updateOrderVNPay(long orderId);
 
     OrderDTO getOrderById(Long orderId);
 

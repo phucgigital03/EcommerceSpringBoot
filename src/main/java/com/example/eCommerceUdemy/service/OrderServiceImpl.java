@@ -10,6 +10,8 @@ import com.example.eCommerceUdemy.util.CurrencyConverterUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,8 @@ import java.util.List;
 @Service
 @Slf4j
 public class OrderServiceImpl implements OrderService {
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+
     @Autowired
     OrderRepository orderRepository;
     @Autowired
@@ -45,6 +49,8 @@ public class OrderServiceImpl implements OrderService {
     VNPayService vnPayService;
     @Autowired
     ConstructImageUtil constructImageUtil;
+    @Autowired
+    EmailService emailService;
 
     @Override
     @Transactional
@@ -226,7 +232,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void updateOrderVNPay(long orderId) {
+    public HistoryOrderResponse updateOrderVNPay(long orderId) {
         Order orderVNPayNotPaid = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
@@ -248,9 +254,35 @@ public class OrderServiceImpl implements OrderService {
         payment.setPgResponseMessage("Payment successful");
         paymentRepository.save(payment);
 
-        orderRepository.save(orderVNPayNotPaid);
-
+        Order updatedOrder =  orderRepository.save(orderVNPayNotPaid);
         log.info("Order updated");
+
+        // Convert Order to HistoryOrderResponse:
+        HistoryOrderResponse historyOrderResponse = modelMapper.map(updatedOrder, HistoryOrderResponse.class);
+        List<HistoryOrderItem> historyOrderItems = new ArrayList<>();
+        // 1.Set historyOrderItem base on orderItem,product
+        // and then add to historyOrderItems
+        updatedOrder.getOrderItems().forEach(orderItem -> {
+            HistoryOrderItem historyOrderItem = new HistoryOrderItem();
+            historyOrderItem.setOrderItemId(orderItem.getOrderItemId());
+            historyOrderItem.setPrice(orderItem.getProduct().getPrice());
+            historyOrderItem.setQuantity(orderItem.getQuantity());
+            historyOrderItem.setOrderedProductPrice(orderItem.getOrderedProductPrice());
+            historyOrderItem.setImage(constructImageUtil.constructImage(orderItem.getProduct().getImage()));
+            historyOrderItem.setDiscount(orderItem.getDiscount());
+            historyOrderItem.setProductName(orderItem.getProduct().getProductName());
+            historyOrderItems.add(historyOrderItem);
+        });
+        historyOrderResponse.setOrderItems(historyOrderItems);
+
+        // 2.Set username in AddressDTO
+        String username = updatedOrder.getShippingAddress().getUser().getUsername();
+        historyOrderResponse.getAddress().setUsername(username);
+
+        // Send Order Confirm Here
+        emailService.sendOrderConfirmationEmail(historyOrderResponse);
+
+        return historyOrderResponse;
     }
 
     @Override

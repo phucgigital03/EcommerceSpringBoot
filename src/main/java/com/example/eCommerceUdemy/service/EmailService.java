@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class EmailService {
     @Value("${app.email.subject}")
     private String subject;
 
-    public void sendOrderConfirmationEmail(HistoryOrderResponse order) throws MessagingException {
+    public void sendOrderConfirmationEmail(HistoryOrderResponse order) {
         logger.info("Preparing to send order confirmation email for order ID: {}", order.getOrderId());
 
         try {
@@ -66,9 +67,9 @@ public class EmailService {
             emailSender.send(message);
             logger.info("Email sent successfully");
 
-        } catch (MessagingException e) {
-            logger.error("Failed to send order confirmation email", e);
-            throw e;
+        } catch (MailException | MessagingException e) {
+            logger.error("Failed to send order confirmation email: {}", e.getMessage());
+//            throw e;
         }
     }
 

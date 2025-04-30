@@ -40,17 +40,8 @@ public class PaymentVNPayController {
     @PostMapping("/sendOrderConfirmTest")
     ResponseEntity<?> sendOrderConfirmTest(@RequestBody HistoryOrderResponse historyOrderResponse) {
         System.out.println("History order " + historyOrderResponse);
-        try {
-            System.out.println("Order saved successfully. Sending confirmation email for order ID: " + historyOrderResponse.getOrderId());
-            emailService.sendOrderConfirmationEmail(historyOrderResponse);
-            System.out.println("Confirmation email sent successfully for order ID: " + historyOrderResponse.getOrderId());
-            return ResponseEntity.status(HttpStatus.OK).body("Order sent successfully");
-        } catch (MessagingException e) {
-            System.out.println("Failed to send confirmation email for order ID: " + historyOrderResponse.getOrderId() + e);
-            // We don't rethrow the exception to avoid rolling back the transaction
-            // But you could implement a retry mechanism or queue the email for later
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        emailService.sendOrderConfirmationEmail(historyOrderResponse);
+        return ResponseEntity.status(HttpStatus.OK).body("Order sent successfully");
     }
 
 }
