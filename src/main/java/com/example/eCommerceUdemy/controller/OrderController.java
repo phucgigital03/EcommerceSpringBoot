@@ -3,6 +3,7 @@ package com.example.eCommerceUdemy.controller;
 import com.example.eCommerceUdemy.config.AppConsants;
 import com.example.eCommerceUdemy.payload.*;
 import com.example.eCommerceUdemy.service.OrderService;
+import com.example.eCommerceUdemy.service.RevenueService;
 import com.example.eCommerceUdemy.service.StripeService;
 import com.example.eCommerceUdemy.service.VNPayService;
 import com.example.eCommerceUdemy.util.AuthUtil;
@@ -30,6 +31,8 @@ public class OrderController {
     OrderService orderService;
     @Autowired
     StripeService stripeService;
+    @Autowired
+    private RevenueService revenueService;
 
     @PostMapping("/order/users/payments/{paymentMethod}")
     public ResponseEntity<OrderDTO> orderProducts(
@@ -116,5 +119,17 @@ public class OrderController {
         return new ResponseEntity<>(map,HttpStatus.OK);
     }
 
+    @GetMapping("/public/order/availableYears")
+    public ResponseEntity<?> getOrdersAvailableYears() {
+        List<Integer> availableYears = revenueService.getAllAvailableYears();
+        return new ResponseEntity<>(availableYears,HttpStatus.OK);
+    }
+
+    @GetMapping("/order/revenue/monthly")
+    public List<MonthlyRevenueResponse> getMonthlyRevenue(
+            @RequestParam(required = false) Integer year
+    ) {
+        return revenueService.getMonthlyRevenue(year);
+    }
 
 }
