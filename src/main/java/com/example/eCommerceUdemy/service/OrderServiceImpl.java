@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -349,6 +350,20 @@ public class OrderServiceImpl implements OrderService {
         historyOrderPageResponse.setTotalElements(orderPage.getNumberOfElements());
         historyOrderPageResponse.setLastPage(orderPage.isLast());
         return historyOrderPageResponse;
+    }
+
+    @Override
+    public Long getAllOrderCount() {
+        return orderRepository.count();
+    }
+
+    @Override
+    public Double getRevenue() {
+        try {
+            return orderRepository.calculateTotalRevenue();
+        } catch (Exception e) {
+            throw new APIException(HttpStatus.NOT_ACCEPTABLE,"Error getting revenue");
+        }
     }
 
     private void getHistoryOrderResponses(List<Order> orders, List<HistoryOrderResponse> historyOrderResponses) {

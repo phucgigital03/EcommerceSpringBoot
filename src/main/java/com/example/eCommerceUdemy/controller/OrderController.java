@@ -16,7 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -95,4 +97,24 @@ public class OrderController {
         HistoryOrderPageResponse historyOrderPageResponse = orderService.getAllOrders(pageNumber,pageSize,sortBy,sortOrder);
         return new ResponseEntity<>(historyOrderPageResponse,HttpStatus.OK);
     }
+
+    @GetMapping("/public/orders/count")
+    public ResponseEntity<?> getOrderCount() {
+        Long orderCount = orderService.getAllOrderCount();
+        Map<String, Long> map = new HashMap<>();
+        map.put("orderCount", orderCount);
+        return new ResponseEntity<>(map, HttpStatus.OK);
+    }
+
+    @GetMapping("/order/admin/revenue")
+    public ResponseEntity<?> getOrdersRevenue() {
+        Double orderRevenue = orderService.getRevenue();
+        Long orderCount = orderService.getAllOrderCount();
+        Map<String, Double> map = new HashMap<>();
+        map.put("orderRevenue", orderRevenue);
+        map.put("orderCount", Double.valueOf(orderCount));
+        return new ResponseEntity<>(map,HttpStatus.OK);
+    }
+
+
 }

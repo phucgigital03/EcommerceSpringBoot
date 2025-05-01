@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -103,6 +105,14 @@ public class ProductController {
     ) {
         ProductResponse productResponse = productService.getProductsByCategory(categoryId,pageNumber,pageSize,sortBy,sortOrder);
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/public/products/count")
+    public ResponseEntity<?> getProductsCount() {
+        Long productCount = productService.getAllProductsCount();
+        Map<String, Long> map = new HashMap<>();
+        map.put("productCount", productCount);
+        return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
 }

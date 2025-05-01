@@ -26,4 +26,6 @@ public interface ProductService {
     ProductDTO addProductWithImage(Long categoryId, ProductDTO productDTO, MultipartFile imageFile);
 
     String softDeleteProduct(Long productId);
+
+    Long getAllProductsCount();
 }

@@ -20,4 +20,8 @@ public interface OrderService {
     List<HistoryOrderResponse> getOrderByUser(String email);
 
     HistoryOrderPageResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
+
+    Long getAllOrderCount();
+
+    Double getRevenue();
 }
