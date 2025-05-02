@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +48,13 @@ public class MyGlobalException {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
         return new ResponseEntity<>("Access Denied: You do not have permission to access this resource", HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<APIResponse> handleDateFormatException(MethodArgumentTypeMismatchException ex) {
+        HttpStatus status = HttpStatus.NOT_ACCEPTABLE;
+        APIResponse apiResponse = new APIResponse("Invalid date format or nonexistent date: " + ex.getValue(),false);
+        return new ResponseEntity<>(apiResponse, status);
     }
 
 }

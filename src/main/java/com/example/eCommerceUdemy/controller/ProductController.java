@@ -5,15 +5,19 @@ import com.example.eCommerceUdemy.model.Product;
 import com.example.eCommerceUdemy.payload.CategoryResponse;
 import com.example.eCommerceUdemy.payload.ProductDTO;
 import com.example.eCommerceUdemy.payload.ProductResponse;
+import com.example.eCommerceUdemy.service.ProductSalesService;
 import com.example.eCommerceUdemy.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,6 +25,8 @@ import java.util.Map;
 public class ProductController {
     @Autowired
     ProductService productService;
+    @Autowired
+    private ProductSalesService productSalesService;
 
     @PostMapping("/admin/categories/{categoryId}/product")
     public ResponseEntity<ProductDTO> createProduct(
@@ -114,5 +120,16 @@ public class ProductController {
         map.put("productCount", productCount);
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
+
+
+    @GetMapping("/products/top-products")
+    public ResponseEntity<?> getTopNProductsSelling(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) {
+        List<Map<String, Object>> data = productSalesService.getTopSellingProductsByDateRange(startDate, endDate);
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+
 
 }
