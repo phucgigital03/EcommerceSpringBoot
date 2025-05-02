@@ -5,6 +5,7 @@ import com.example.eCommerceUdemy.exception.ResourceNotFoundException;
 import com.example.eCommerceUdemy.model.AppRole;
 import com.example.eCommerceUdemy.model.Role;
 import com.example.eCommerceUdemy.model.User;
+import com.example.eCommerceUdemy.payload.SignUpMethodResponse;
 import com.example.eCommerceUdemy.payload.UsersResponse;
 import com.example.eCommerceUdemy.repository.RoleRepository;
 import com.example.eCommerceUdemy.repository.UserRepository;
@@ -17,10 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -254,5 +252,28 @@ public class UserServiceImpl implements UserService {
         deletedUser.setDeleted(true);
         userRepository.save(deletedUser);
         return "Deleted user successfully with " + userId;
+    }
+
+    @Override
+    public List<SignUpMethodResponse> getUserRegisterMethod() {
+        try {
+            List<Object[]> groupMethods = userRepository.getRegisterMethod();
+            List<SignUpMethodResponse> methods;
+            methods = groupMethods.stream().map(method -> {
+                if(method[0] == null){
+                    return new SignUpMethodResponse(
+                            "userName&password",
+                            (Long) method[1]
+                    );
+                }
+                return new SignUpMethodResponse(
+                        (String) method[0],
+                        (Long) method[1]
+                );
+            }).toList();
+            return methods;
+        } catch (Exception e) {
+            throw new APIException(HttpStatus.INTERNAL_SERVER_ERROR,"Something went wrong");
+        }
     }
 }

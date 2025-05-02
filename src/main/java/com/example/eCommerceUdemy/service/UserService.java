@@ -1,6 +1,7 @@
 package com.example.eCommerceUdemy.service;
 
 import com.example.eCommerceUdemy.model.User;
+import com.example.eCommerceUdemy.payload.SignUpMethodResponse;
 import com.example.eCommerceUdemy.payload.UsersResponse;
 import com.example.eCommerceUdemy.security.request.SignupRequest;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
@@ -41,4 +42,6 @@ public interface UserService {
 
     @Transactional
     String deletedUser(Long userId);
+
+    List<SignUpMethodResponse> getUserRegisterMethod();
 }

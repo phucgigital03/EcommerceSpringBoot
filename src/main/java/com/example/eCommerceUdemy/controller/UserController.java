@@ -3,6 +3,7 @@ package com.example.eCommerceUdemy.controller;
 import com.example.eCommerceUdemy.model.AppRole;
 import com.example.eCommerceUdemy.model.Role;
 import com.example.eCommerceUdemy.model.User;
+import com.example.eCommerceUdemy.payload.SignUpMethodResponse;
 import com.example.eCommerceUdemy.payload.UsersResponse;
 import com.example.eCommerceUdemy.repository.RoleRepository;
 import com.example.eCommerceUdemy.security.request.SignupRequest;
@@ -64,5 +65,11 @@ public class UserController {
     ) {
         String deletedUser = userService.deletedUser(userId);
         return ResponseEntity.ok().body(deletedUser);
+    }
+
+    @GetMapping("/registerMethod")
+    public ResponseEntity<?> getUserRegisterMethod() {
+        List<SignUpMethodResponse> signUpMethodResponses = userService.getUserRegisterMethod();
+        return ResponseEntity.ok().body(signUpMethodResponses);
     }
 }
