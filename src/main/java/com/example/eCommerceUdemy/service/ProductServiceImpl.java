@@ -163,7 +163,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> findByDeletedFalse() {
-        return List.of();
+        return productRepository.findByDeletedFalse();
     }
 
     @Override
