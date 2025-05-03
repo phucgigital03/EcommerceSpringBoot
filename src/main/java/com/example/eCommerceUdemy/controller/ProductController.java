@@ -3,13 +3,20 @@ package com.example.eCommerceUdemy.controller;
 import com.example.eCommerceUdemy.config.AppConsants;
 import com.example.eCommerceUdemy.model.Product;
 import com.example.eCommerceUdemy.payload.CategoryResponse;
+import com.example.eCommerceUdemy.payload.ImportResponse;
 import com.example.eCommerceUdemy.payload.ProductDTO;
 import com.example.eCommerceUdemy.payload.ProductResponse;
+import com.example.eCommerceUdemy.service.ProductImportService;
 import com.example.eCommerceUdemy.service.ProductSalesService;
 import com.example.eCommerceUdemy.service.ProductService;
+import com.example.eCommerceUdemy.util.ExcelHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +34,8 @@ public class ProductController {
     ProductService productService;
     @Autowired
     private ProductSalesService productSalesService;
+    @Autowired
+    private ProductImportService productImportService;
 
     @PostMapping("/admin/categories/{categoryId}/product")
     public ResponseEntity<ProductDTO> createProduct(
@@ -131,5 +140,40 @@ public class ProductController {
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
 
+    @PostMapping("/products/import")
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+        if (!ExcelHelper.hasExcelFormat(file)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Please upload an Excel file!");
+        }
+
+        try {
+            ImportResponse importResponse = productImportService.importProductsFromExcel(file);
+            String summaryMessage = String.format(
+                    "Import completed: %d of %d products imported successfully, %d failed.",
+                    importResponse.getSuccessCount(),
+                    importResponse.getTotalItems(),
+                    importResponse.getFailureCount()
+            );
+            // Can return summaryMessage or importResponse
+            return ResponseEntity.status(HttpStatus.OK).body(importResponse);
+        } catch (Exception e) {
+            String message = "Could not upload the file: " + file.getOriginalFilename() + "!";
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(message);
+        }
+    }
+
+    @GetMapping("/products/export")
+    public ResponseEntity<Resource> getFile() {
+        String filename = "products.xlsx";
+        List<Product> products = productService.findByDeletedFalse();
+
+        InputStreamResource file = new InputStreamResource(ExcelHelper.productsToExcel(products));
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(file);
+    }
 
 }

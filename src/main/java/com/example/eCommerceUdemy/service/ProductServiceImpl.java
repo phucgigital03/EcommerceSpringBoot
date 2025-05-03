@@ -162,6 +162,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<Product> findByDeletedFalse() {
+        return List.of();
+    }
+
+    @Override
     public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category) {
 //      sort
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")

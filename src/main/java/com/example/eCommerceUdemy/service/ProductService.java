@@ -1,11 +1,13 @@
 package com.example.eCommerceUdemy.service;
 
+import com.example.eCommerceUdemy.model.Product;
 import com.example.eCommerceUdemy.payload.ProductDTO;
 import com.example.eCommerceUdemy.payload.ProductResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface ProductService {
     ProductDTO addProduct(Long categoryId, ProductDTO productDTO);
@@ -28,4 +30,6 @@ public interface ProductService {
     String softDeleteProduct(Long productId);
 
     Long getAllProductsCount();
+
+    List<Product> findByDeletedFalse();
 }
