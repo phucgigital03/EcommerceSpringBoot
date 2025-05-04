@@ -264,7 +264,7 @@ public class AuthController {
             User user = userRepository.findById(userTokenDTO.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("User", "id", userTokenDTO.getUserId()));
 //      Check token equals with user's token from DB
-            if(user.getAccessToken() == null){
+            if (user.getAccessToken() == null) {
                 throw new APIException(HttpStatus.BAD_REQUEST, "Access token is empty!");
             }
 
@@ -312,16 +312,16 @@ public class AuthController {
         }
     }
 
-//  For 2FA authentication
+    //  For 2FA authentication
     @PostMapping("/enable-2fa")
     public ResponseEntity<String> enable2FA() {
-        try{
+        try {
             Long userId = authUtil.loggedInUserId();
             GoogleAuthenticatorKey secret = userService.generate2FASecret(userId);
             String qrCodeUrl = totpService.getQRCodeUrl(secret,
                     userService.getUserById(userId).getUsername());
             return ResponseEntity.ok(qrCodeUrl);
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Enable2FA Error: " + e.getMessage());
             return ResponseEntity.status(400).body("Bad Request");
         }
@@ -363,7 +363,7 @@ public class AuthController {
 
     @PostMapping("/public/verify-2fa-login")
     public ResponseEntity<?> verify2FALogin(@RequestParam int code,
-                                                 @RequestParam String jwtToken) {
+                                            @RequestParam String jwtToken) {
         String username = jwtUtils.getUsernameFromToken(jwtToken);
         User user = userService.findByUsername(username);
         boolean isValid = userService.validate2FACode(user.getUserId(), code);
@@ -394,6 +394,27 @@ public class AuthController {
             return ResponseEntity.ok().body(new MessageResponse("Token validated successfully!"));
         }
         return ResponseEntity.badRequest().body(new MessageResponse("Invalid token"));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        try {
+            userService.generatePasswordResetToken(email);
+            return ResponseEntity.ok(new MessageResponse("Password reset email sent!"));
+        } catch (Exception e) {
+            System.out.println("Internal Server Email Error" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("Internal Server Error"));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(
+            @RequestParam String token,
+            @RequestParam String newPassword
+    ) {
+        userService.resetPassword(token, newPassword);
+        return ResponseEntity.ok(new MessageResponse("Password reset successful"));
     }
 
 }

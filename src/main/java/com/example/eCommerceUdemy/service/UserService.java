@@ -44,4 +44,9 @@ public interface UserService {
     String deletedUser(Long userId);
 
     List<SignUpMethodResponse> getUserRegisterMethod();
+
+    void generatePasswordResetToken(String email);
+
+    @Transactional
+    void resetPassword(String token, String newPassword);
 }
