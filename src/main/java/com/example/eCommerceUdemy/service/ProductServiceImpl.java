@@ -190,6 +190,7 @@ public class ProductServiceImpl implements ProductService {
                             category
                     )));
         }
+        spec = spec.and((root, query, cb) -> cb.isFalse(root.get("deleted")));
         Page<Product> productPage = productRepository.findAll(spec,pageable);
 //      get products
         List<Product> products = productPage.getContent();
