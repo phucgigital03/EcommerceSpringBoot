@@ -41,6 +41,7 @@ user authentication, order processing, and payment integration.
 - **Admin Panel**: Manage products, categories, and orders.
 - **User Features**: Browse products, add items to the cart, and complete purchases.
 - **API Endpoints**: Use the RESTful APIs for integration with external systems.
+- **Payment Integration**: Supports multiple payment gateways for secure transactions (VNPay,Stripe).
 
 ## Contributor Guidelines
 
