@@ -12,7 +12,7 @@ user authentication, order processing, and payment integration.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/phucgigital03/springBootEcommerce.git
+   git clone https://github.com/phucgigital03/EcommerceSpringBoot.git
    ```
 2. Navigate to the project directory:
    ```bash
